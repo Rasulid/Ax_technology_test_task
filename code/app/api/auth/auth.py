@@ -1,10 +1,18 @@
+
+from fastapi import Depends, HTTPException
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+from starlette import status
 
 from core.config import SECRET_KEY
 from fastapi.security import OAuth2PasswordBearer
+
+from db.session import get_db
+from models.user_model import User as UserModel
+from schemas.user_schema import UserCreate as UserSchema
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
@@ -24,12 +32,7 @@ class TokenData(BaseModel):
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-class User(BaseModel):
-    username: str
-    email: str
-    hashed_password: str
-    is_active: bool = True
-    is_admin: bool = False
+class User(UserSchema):
 
     def verify_password(self, password: str):
         return pwd_context.verify(password, self.hashed_password)
@@ -76,4 +79,23 @@ def authenticate_user(db, username: str, password: str):
         return False
     if not user.verify_password(password):
         return False
+    return user
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    token_data = verify_token(token, credentials_exception=credentials_exception)
+    if token_data is None:
+        raise credentials_exception
+
+    user = db.query(UserModel).filter(UserModel.gmail == token_data.username).first()
+    print(user)
+    if user is None:
+        raise credentials_exception
+
     return user
