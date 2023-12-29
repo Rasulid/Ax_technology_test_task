@@ -1,12 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class UserCreate(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     hashed_password: str
     is_active: bool = True
-    # is_admin: bool = False
+    is_staff: bool = False
+    is_superuser: bool = False
+    is_moderator: bool = False
 
 
 class UserInDB(UserCreate):
@@ -15,9 +17,12 @@ class UserInDB(UserCreate):
 
 class UserResponseSchema(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     is_active: bool = True
-    # is_admin: bool = False
+    is_staff: bool = False
+    is_superuser: bool = False
+    is_moderator: bool = False
 
-    class Config:
-        orm_mode = True
+
+class Config:
+    orm_mode = True

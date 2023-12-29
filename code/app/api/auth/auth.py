@@ -10,7 +10,6 @@ from core.config import SECRET_KEY
 from fastapi.security import OAuth2PasswordBearer
 
 from db.session import get_db
-from models.admin_model import Admin as AdminModel
 from models.user_model import User as UserModel
 from schemas.user_schema import UserCreate as UserSchema
 
@@ -100,26 +99,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-async def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception=credentials_exception)
-    if token_data is None:
-        raise credentials_exception
-
-    admin = db.query(AdminModel).filter(AdminModel.username == token_data.username).first()
-    if admin is None:
-        raise credentials_exception
-
-    return admin
-
-
-def get_current_admin_user(current_user: AdminModel = Security(get_current_admin)):
-    if not current_user.is_admin:
+def get_current_admin_user(current_user: UserModel = Security(get_current_user)):
+    if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges"

@@ -1,11 +1,29 @@
-from datetime import date
 from pydantic import BaseModel
+from datetime import date
+from api.schemas.author_schema import AuthorSchema
 
 
-class BookCreate(BaseModel):
+class BookBaseSchema(BaseModel):
     title: str
-    author_id: int
     language: str
     publication_date: date
     category: str
     isbn: str
+
+
+class BookCreateSchema(BookBaseSchema):
+    pass
+
+
+class BookSchema(BookBaseSchema):
+
+    class Config:
+        orm_mode = True
+
+
+class BookAuthorSchema(BookBaseSchema):
+
+    author: 'AuthorSchema'
+
+    class Config:
+        orm_mode = True
