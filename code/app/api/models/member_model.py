@@ -9,7 +9,7 @@ class MembershipStatus(enum.Enum):
 
 
 class Member(Base):
-    __tablename__ = "members"
+    __tablename__ = "member"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     contact_info = Column(String)

@@ -6,10 +6,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import JSONResponse
 
 from auth.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_password_hash, \
-    verify_password, get_current_user
+    verify_password, get_current_admin
 from db.session import get_db
-from models.user_model import User
-from schemas.user_schema import UserCreate, UserResponseSchema
+from models.admin_model import Admin
+from schemas.admin_schema import AdminResponseSchema, AdminCreate
 
 router = APIRouter(
     prefix="/auth",
@@ -19,7 +19,7 @@ router = APIRouter(
 
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == form_data.username).first()
+    user = db.query(Admin).filter(Admin.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -33,22 +33,24 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/users/", response_model=UserResponseSchema)
-async def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    query = db.query(User).filter(User.email == user.email).first()
+@router.post("/create-admin/", response_model=AdminResponseSchema)
+async def create_user(user: AdminCreate, db: Session = Depends(get_db),
+                      # login: dict = Depends(get_current_admin)
+                      ):
+    query = db.query(Admin).filter(Admin.email == user.email).first()
     if query is not None:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content=f"user {user.email} already exists"
         )
-    db_user = User(email=user.email, username=user.username, hashed_password=get_password_hash(user.hashed_password))
+    db_user = Admin(email=user.email, username=user.username, hashed_password=get_password_hash(user.hashed_password))
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-@router.get("/users/me", response_model=UserResponseSchema)
-async def read_users_me(current_user: User = Depends(get_current_user)):
+@router.get("/users/me", response_model=AdminResponseSchema)
+async def read_users_me(current_user: Admin = Depends(get_current_admin)):
     return current_user
 
