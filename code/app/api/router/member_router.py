@@ -34,3 +34,26 @@ def read_member(member_id: int, db: Session = Depends(get_db)):
 def read_members(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     members = db.query(LibraryMemberModel).offset(skip).limit(limit).all()
     return members
+
+
+@router.put("/update-member/{member_id}", response_model=LibraryMemberSchema)
+def update_member(member_id: int, member: LibraryMemberCreateSchema, db: Session = Depends(get_db)):
+    db_member = db.query(LibraryMemberModel).filter(LibraryMemberModel.id == member_id).first()
+    if db_member is None:
+        raise HTTPException(status_code=404, detail="Library member not found")
+
+    for var, value in vars(member).items():
+        setattr(db_member, var, value) if value else None
+
+    db.commit()
+    return db_member
+
+
+@router.delete("/delete-member/{member_id}", status_code=204)
+def delete_member(member_id: int, db: Session = Depends(get_db)):
+    db_member = db.query(LibraryMemberModel).filter(LibraryMemberModel.id == member_id).first()
+    if db_member is None:
+        raise HTTPException(status_code=404, detail="Library member not found")
+    db.delete(db_member)
+    db.commit()
+    return {"message": "Library member deleted successfully"}

@@ -1,6 +1,7 @@
-import redis
+
 from fastapi import Query, APIRouter, HTTPException
 from fastapi_cache.decorator import cache
+
 
 from core.config import GOOGLE_API_KEY
 from GoogleBookAPI.google_book import GoogleBooksAPI
@@ -22,6 +23,5 @@ def search_books(query: str = Query(..., min_length=3, max_length=100)):
         return response['items']
     except Exception as e:
         raise HTTPException(status_code=499, detail=str(e))
-
 
 
