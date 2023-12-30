@@ -35,8 +35,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 
 @router.post("/create-admin/", response_model=UserResponseSchema)
 async def create_user(user: UserCreate, db: Session = Depends(get_db),
-                      # login: dict = Depends(get_current_user)
-                      ):
+                      current_user: User = Depends(get_current_user)):
+
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
     query = db.query(User).filter(User.email == user.email).first()
     if query is not None:
         return JSONResponse(
@@ -62,7 +65,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.put("/update-user/{user_id}", response_model=UserResponseSchema)
+@router.put("/update-user-put/{user_id}", response_model=UserResponseSchema)
 def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
                 current_user: User = Depends(get_current_user)):
     if not current_user.is_superuser:
@@ -74,14 +77,41 @@ def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
 
     for var, value in vars(user).items():
         if value is not None:
-            setattr(db_user, var, value)
+            if var == 'password':
+                hashed_password = get_password_hash(value)
+                setattr(db_user, var, hashed_password)
+            else:
+                setattr(db_user, var, value)
+
+    db.commit()
+    return db_user
+
+
+@router.patch("/update-user-patch/{user_id}", response_model=UserResponseSchema)
+def patch_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
+               current_user: User = Depends(get_current_user)):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for var, value in vars(user).items():
+        if value is not None:
+            if var == 'password':
+                hashed_password = get_password_hash(value)
+                setattr(db_user, var, hashed_password)
+            else:
+                setattr(db_user, var, value)
 
     db.commit()
     return db_user
 
 
 @router.delete("/delete-user/{user_id}", status_code=204)
-def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_user(user_id: int, db: Session = Depends(get_db),
+                current_user: User = Depends(get_current_user)):
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
@@ -106,3 +136,5 @@ def change_password(password_data: ChangePasswordSchema, db: Session = Depends(g
     db.commit()
     return {"message": "Password changed successfully"}
 
+
+# string
