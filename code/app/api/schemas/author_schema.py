@@ -15,14 +15,14 @@ class AuthorCreateSchema(AuthorBaseSchema):
 
 
 class AuthorSchema(AuthorBaseSchema):
+    id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class AuthorBookSchema(AuthorBaseSchema):
-
     books: list[Book]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

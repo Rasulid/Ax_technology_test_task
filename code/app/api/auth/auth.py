@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from db.session import get_db
 from models.user_model import User as UserModel
+from models.member_model import Member as MemberModel
 from schemas.user_schema import UserCreate as UserSchema
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
@@ -99,10 +100,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-def get_current_admin_user(current_user: UserModel = Security(get_current_user)):
+def get_current_admin(current_user: UserModel = Security(get_current_user)):
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges"
         )
     return current_user
+
+

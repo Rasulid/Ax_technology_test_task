@@ -10,7 +10,6 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision: str = '3e862ca6d4bb'
 down_revision: Union[str, None] = '17cb00a0d1ae'
@@ -36,15 +35,15 @@ def downgrade() -> None:
     op.drop_column('user', 'is_superuser')
     op.drop_column('user', 'is_staff')
     op.create_table('admin',
-    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
-    sa.Column('username', sa.VARCHAR(), autoincrement=False, nullable=True),
-    sa.Column('email', sa.VARCHAR(), autoincrement=False, nullable=True),
-    sa.Column('hashed_password', sa.VARCHAR(), autoincrement=False, nullable=True),
-    sa.Column('is_active', sa.BOOLEAN(), autoincrement=False, nullable=True),
-    sa.Column('is_admin', sa.BOOLEAN(), autoincrement=False, nullable=True),
-    sa.Column('is_staff', sa.BOOLEAN(), autoincrement=False, nullable=True),
-    sa.PrimaryKeyConstraint('id', name='admin_pkey')
-    )
+                    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
+                    sa.Column('username', sa.VARCHAR(), autoincrement=False, nullable=True),
+                    sa.Column('email', sa.VARCHAR(), autoincrement=False, nullable=True),
+                    sa.Column('hashed_password', sa.VARCHAR(), autoincrement=False, nullable=True),
+                    sa.Column('is_active', sa.BOOLEAN(), autoincrement=False, nullable=True),
+                    sa.Column('is_admin', sa.BOOLEAN(), autoincrement=False, nullable=True),
+                    sa.Column('is_staff', sa.BOOLEAN(), autoincrement=False, nullable=True),
+                    sa.PrimaryKeyConstraint('id', name='admin_pkey')
+                    )
     op.create_index('ix_admin_username', 'admin', ['username'], unique=True)
     op.create_index('ix_admin_id', 'admin', ['id'], unique=False)
     op.create_index('ix_admin_email', 'admin', ['email'], unique=True)

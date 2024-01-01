@@ -33,9 +33,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/create-admin/", response_model=UserResponseSchema)
+@router.post("/create-user/", response_model=UserResponseSchema)
 async def create_user(user: UserCreate, db: Session = Depends(get_db),
-                      current_user: User = Depends(get_current_user)):
+                      current_user: User = Depends(get_current_user)
+                      ):
 
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -60,7 +61,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db),
     return db_user
 
 
-@router.get("/users/me", response_model=UserResponseSchema)
+@router.get("/user/me", response_model=UserResponseSchema)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
@@ -68,6 +69,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 @router.put("/update-user-put/{user_id}", response_model=UserResponseSchema)
 def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
                 current_user: User = Depends(get_current_user)):
+
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
@@ -90,6 +92,7 @@ def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
 @router.patch("/update-user-patch/{user_id}", response_model=UserResponseSchema)
 def patch_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
                current_user: User = Depends(get_current_user)):
+
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
@@ -112,6 +115,7 @@ def patch_user(user_id: int, user: UserCreate, db: Session = Depends(get_db),
 @router.delete("/delete-user/{user_id}", status_code=204)
 def delete_user(user_id: int, db: Session = Depends(get_db),
                 current_user: User = Depends(get_current_user)):
+
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
@@ -135,6 +139,3 @@ def change_password(password_data: ChangePasswordSchema, db: Session = Depends(g
     user.hashed_password = get_password_hash(password_data.new_password)
     db.commit()
     return {"message": "Password changed successfully"}
-
-
-# string
