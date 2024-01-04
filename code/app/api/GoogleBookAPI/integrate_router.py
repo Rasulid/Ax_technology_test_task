@@ -15,7 +15,7 @@ google_books_api = GoogleBooksAPI(api_key=GOOGLE_API_KEY)
 
 
 @router.get("/search_books/", response_model=List[GoogleBookSchema])
-# @cache(expire=30)
+@cache(expire=30)
 def search_books(query: str = Query(..., min_length=3, max_length=100)):
     try:
         response = google_books_api.search_books(query)
